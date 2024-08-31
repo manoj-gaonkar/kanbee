@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+option go_package = "github.com/nrssi/kanbee/internal/grpc";
+
+package kanban;
+
+// Enum for Task States
+enum TaskState {
+  TODO = 0;
+  IN_PROGRESS = 1;
+  DONE = 2;
+  BLOCKED = 3;
+}
+
+// Project message definition
+message Project {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+// Task message definition
+message Task {
+  int32 id = 1;
+  int32 project_id = 2;
+  string title = 3;
+  string description = 4;
+  TaskState state = 5; // Enum for task state
+  string deadline = 6; // Deadline for the task
+  string created_at = 7;
+}
+
+// Update message definition
+message Update {
+  int32 id = 1;
+  int32 task_id = 2;
+  string message = 3;
+  bytes attachment_data = 4; // File data
+  string filename = 5; // Filename of the attachment
+  string created_at = 6;
+}
+
+// Request and response messages for Project-related operations
+message CreateProjectRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message UpdateProjectRequest {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message ProjectResponse {
+  Project project = 1;
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+// Request and response messages for Task-related operations
+message CreateTaskRequest {
+  int32 project_id = 1;
+  string title = 2;
+  string description = 3;
+  TaskState state = 4; // Initial state
+  string deadline = 5; // Deadline for the task
+}
+
+message UpdateTaskStateRequest {
+  int32 id = 1;
+  TaskState state = 2; // New state
+}
+
+message UpdateTaskRequest {
+  int32 id = 1;
+  string title = 2;
+  string description = 3;
+  TaskState state = 4;
+  string deadline = 5; // Deadline for the task
+  int32 project_id = 6;
+}
+
+message TaskResponse {
+  Task task = 1;
+}
+
+message ListTasksRequest {
+  TaskState state = 1; // Optional filter
+  int32 project_id = 2; // Optional filter
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+}
+
+// Request and response messages for Update-related operations
+message CreateUpdateRequest {
+  int32 task_id = 1;
+  string message = 2;
+  bytes attachment_data = 3; // File data
+  string filename = 4; // Filename of the attachment
+}
+
+message UpdateResponse {
+  Update update = 1;
+}
+
+message ListUpdatesRequest {
+  int32 task_id = 1;
+}
+
+message ListUpdatesResponse {
+  repeated Update updates = 1;
+}
+
+// General request and response messages
+message GetByIdRequest{
+  int32 id = 1;
+}
+
+message Empty {}
+
+// gRPC service definition for Kanban operations
+service KanbanService {
+  // Project operations
+  rpc CreateProject(CreateProjectRequest) returns (ProjectResponse);
+  rpc UpdateProject(UpdateProjectRequest) returns (ProjectResponse);
+  rpc GetProjectById(GetByIdRequest) returns (ProjectResponse);
+  rpc ListProjects(Empty) returns (ListProjectsResponse);
+
+  // Task operations
+  rpc CreateTask(CreateTaskRequest) returns (TaskResponse);
+  rpc UpdateTask(UpdateTaskRequest) returns (TaskResponse);
+  rpc UpdateTaskState(UpdateTaskStateRequest) returns (TaskResponse);
+  rpc GetTaskById(GetByIdRequest) returns (TaskResponse);
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+
+  // Update operations
+  rpc CreateUpdate(CreateUpdateRequest) returns (UpdateResponse);
+  rpc ListUpdates(ListUpdatesRequest) returns (ListUpdatesResponse);
+}
